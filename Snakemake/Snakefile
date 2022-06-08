@@ -1,0 +1,139 @@
+#!/usr/bin/env snakemake
+configfile: "config.yml"
+
+rule all:
+    input:
+        expand("{name}_*.*",
+        name=config["name"])
+
+rule minimap2:
+    input:
+        expand("{path_to_host_ref_file}",
+        path_to_host_ref_file=config["path_to_host_ref_file"]),
+        expand("{path_to_reads_file}",
+        path_to_reads_file=config["path_to_reads_file"])
+    output:
+        expand("{name}_minimap2.bam",
+        name=config["name"])
+    threads: 12
+    shell:
+        "singularity exec {config[minimap2_samtools_simg]} minimap2 -ax map-ont {input} | samtools sort -O BAM -o {output}"
+
+rule quality_bam_filter:
+    input:
+        expand("{path_to_host_ref_file}",
+        path_to_host_ref_file=config["path_to_host_ref_file"]),
+        expand("{name}_minimap2.bam",
+        name=config["name"])
+    output:
+        "tmp_minimap2_qfilt_21"
+    threads: 12
+    shell:
+        "singularity exec {config[samtools_simg]} samtools view -Sq 21 -U {output} -T {input}"
+
+rule id_filt_reads:
+    input:
+        "tmp_minimap2_qfilt_21"
+    output:
+        expand("{name}_minimap2_qfilt_21",
+        name=config["name"])
+    threads: 10
+    shell:
+        "cut -f 1 {input} > {output}"
+
+rule id_filt_reads_unique:
+    input:
+        expand("{name}_minimap2_qfilt_21",
+        name=config["name"])
+    output:
+        expand("{name}_minimap2_qfilt_21_uniq",
+        name=config["name"])
+    threads: 10
+    shell:
+        "sort -u {input} > {output}"
+
+rule host_filter_out:
+    input:
+        basecalled=expand("{path_to_reads_file}",
+        path_to_reads_file=config["path_to_reads_file"]),
+
+        script=expand("{filt_python_script}",
+        filt_python_script=config["filt_python_script"]),
+
+        ids=expand("{name}_minimap2_qfilt_21_uniq",
+        name=config["name"])
+    output:
+        expand("{name}_host_filtered.fastq.gz",
+        name=config["name"])
+    threads: 10
+    shell:
+        "singularity exec {config[biopython_simg]} python {input.script} {input.basecalled} {output} -r {input.ids}"
+
+rule flye_assembly:
+    input:
+        expand("{name}_host_filtered.fastq.gz",
+        name=config["name"])
+    output:
+        "flye/assembly.fasta",
+        "flye/assembly_info.txt",
+        "flye/flye.log"
+    threads: 15
+    shell:
+        "singularity exec {config[flye_simg]} flye --nano-raw {input} --out-dir ./ --meta -i 5 --genome-size 600K --threads 2"
+
+rule medaka_cons:
+    input:
+        expand("{name}_host_filtered.fastq.gz",
+        name=config["name"]),
+        "flye/assembly.fasta"
+    output:
+        "medaka/consensus.fasta"
+        # "medaka/*.bam*"
+    threads: 15
+    shell:
+        "singularity exec {config[medaka_simg]} medaka_consensus -i {input[0]} -d {input[1]} -o . -t 2"
+
+rule blastn_check:
+    input:
+        expand("{path_to_target_genome_file}",
+        path_to_target_genome_file=config["path_to_target_genome_file"]),
+        "medaka/consensus.fasta"
+    output:
+        expand("{name}_consensus_blast_AT.tsv",
+        name=config["name"])
+    threads: 15
+    shell:
+        'singularity exec {config[blastn_simg]} blastn -subject {input[0]} -query {input[1]} -outfmt "6 std qlen slen" -out {output}'
+
+
+rule contig_selection:
+    input:
+        expand("{contig_sel_python_script}",
+        contig_sel_python_script=config["contig_sel_python_script"]),
+        "medaka/consensus.fasta",
+        expand("{name}_consensus_blast_AT.tsv",
+        name=config["name"])
+
+    output:
+        expand("{name}_genomic.fasta",
+        name=config["name"])
+    threads: 8
+    shell:
+        "singularity exec {config[biopython_simg]} python {input[0]} -c {input[1]} -t {input[2]} -p {config[name]} -o ./"
+
+rule pilon:
+    input:
+        "do_pilon.sh"
+        "medaka/consensus.fasta",
+        expand("{name}_genomic.fasta",
+        name=config["name"]),
+        expand("{path_to_r1_file}",
+        path_to_r1_file=config["path_to_r1_file"]),
+        expand("{path_to_r2_file}",
+        path_to_r2_file=config["path_to_r2_file"])
+    output:
+        expand("{name}_*.*",
+        name=config["name"])
+    threads: 20
+    run:
+        "{input[0]} {input[1]} {input[2]} {input[3]} {config[name]}"
