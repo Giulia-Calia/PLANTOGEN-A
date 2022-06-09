@@ -1,58 +1,44 @@
 #!/usr/bin/env nextflow
 
-params.ref = "/nfs1/caliag/phytoplasmas/GDDH13_1-1_formatted.fasta"
-params.basecalled = "/nfs1/caliag/phytoplasmas/PM/some_PM.fastq"
-params.host_filt_py = "/nfs1/caliag/scripts/fasta_filter_mod_mic.py"
-params.phytoplasm_ref = "/nfs1/caliag/phytoplasmas/NC_011047.1_capm_AT.fasta"
-params.name = "PM"
-
-ref = file(params.ref)
+// GENERAL WORKFLOW PARAMETERS
+host_ref = file(params.host_ref)
+host_ref_ch = Channel.fromPath(params.host_ref)
+host_ref_ch.into { host_ref_minimap2_ch; host_ref_quality_bam_filter_ch }
 basecalled = file(params.basecalled)
-filt_py = file(params.host_filt_py)
-phytoplasm_ref = file(params.phytoplasm_ref)
-
-ref_ch = Channel.fromPath(params.ref)
 basecalled_ch = Channel.fromPath(params.basecalled)
-filt_py_ch = Channel.fromPath(params.host_filt_py)
-phytoplasm_ref_ch = Channel.fromPath(params.phytoplasm_ref)
-
-basecalled_ch.into { basecalled_minimap2_ch; basecalled_host_filt_ch; basecalled  }
-ref_ch.into { ref_minimap2_ch; ref_quality_bam_filter_ch }
-
-// CONTIG SELECTION VARIABLES
-params.contig_sel_py = "/nfs1/caliag/scripts/blast_contig_selection.py"
-c_sel_py_ch = Channel.fromPath(params.contig_sel_py)
-//
-
-// PILON VARIABLES
-params.r1 = "some/path"
-params.r2 = "some/path"
+basecalled_ch.into { basecalled_minimap2_ch; basecalled_host_filt_ch; basecalled }
+symbiont_target_ref = file(params.symbiont_target_ref)
+symbiont_target_ref_ch = Channel.fromPath(params.symbiont_target_ref)
 r1 = file(params.r1)
 r1_ch = Channel.fromPath(params.r1)
 r2 = file(params.r2)
 r2_ch = Channel.fromPath(params.r2)
-name = file(params.name)
-
-
+//
+// SCRIPTS
+host_filt_py = file(params.host_filt_py)
+filt_py_ch = Channel.fromPath(params.host_filt_py)
+contig_sel_py = file(params.contig_sel_py)
+c_sel_py_ch = Channel.fromPath(params.contig_sel_py)
+//
 
 process minimap2 {
 	input:
-	file ref from ref_minimap2_ch
+	file host_ref from host_ref_minimap2_ch
 	file basecalled from basecalled_minimap2_ch
 
 	output:
 	file "${params.name}_minimap2.bam" into bam_file_ch
 	// -a output in SAM format
-	// -x map-ont for Nanopore reads to be aligned against the reference
+	// -x map-ont for Nanopore reads to be aligned against the host_reference
 	// -Sb to pass from a SAM to a BAM file (useful and binary == less memory usage)
 	"""
-	minimap2 -ax map-ont $ref $basecalled | samtools sort -O BAM -o ${params.name}_minimap2.bam
+	minimap2 -ax map-ont $host_ref $basecalled | samtools sort -O BAM -o ${params.name}_minimap2.bam
 	"""
 }
 
 process quality_bam_filter {
 	input:
-	file ref from ref_quality_bam_filter_ch
+	file host_ref from host_ref_quality_bam_filter_ch
 	file $name_minimap2 from bam_file_ch
 
 	output:
@@ -60,10 +46,10 @@ process quality_bam_filter {
 
 	// -Sq 21 take all reads with >= 21 quality
 	// -U write to file those reads that do not correspond to q >= 21 (-> those reads that do not align or align worse to the host genome)
-	// -T the reference filter
+	// -T the host_reference filter
 	// the filte from which to filt out
 	"""
-  samtools view -Sq 21 -U tmp_minimap2_qfilt_21 -T $ref ${$name_minimap2}
+  samtools view -Sq 21 -U tmp_minimap2_qfilt_21 -T $host_ref ${$name_minimap2}
   """
 }
 
@@ -152,31 +138,31 @@ process medaka_cons {
 
 // create instances of the same channel to not create downstream calls problems
 medaka_cons_ch.into { medaka_cons_blast; medaka_cons_blast_filt; medaka_cons_pomoxis; medaka_cons_md; medaka_cons_contig_sel; medaka_cons_pilon }
-phytoplasm_ref_ch.into { phy_ref_blastn_check; phy_ref_blastn_filt }
+symbiont_target_ref_ch.into { symb_ref_blastn_check; symb_ref_blastn_filt }
 host_filt_pomoxis.into { pom_quality; pom_align_md }
 
 process blastn_check {
 	input:
-	file phytoplasm_ref from phy_ref_blastn_check
+	file symbiont_targetref from symb_ref_blastn_check
 	file consensus from medaka_cons_blast
 	output:
 	file "${params.name}_consensus_blast_AT.t" into blastn_ch
 
 	"""
-	blastn -subject $phytoplasm_ref -query $consensus -outfmt "6 std qlen slen" -out ${params.name}_consensus_blast_AT.t
+	blastn -subject $symbiont_target_ref -query $consensus -outfmt "6 std qlen slen" -out ${params.name}_consensus_blast_AT.t
 	"""
 }
 
 process blastn_check_filt {
 	input:
-	file phytoplasm_ref from phy_ref_blastn_filt
+	file symbiont_target_ref from symb_ref_blastn_filt
 	file consensus from medaka_cons_blast_filt
 
 	output:
 	file "${params.name}_consensus_blast_AT_qcov20_ide80.t" into blastn_filt_ch
 
 	"""
-	blastn -subject $phytoplasm_ref -query $consensus -outfmt "6 std qlen slen" -qcov_hsp_perc 20 -perc_identity 80 -out ${params.name}_consensus_blast_AT_qcov20_ide80.t
+	blastn -subject $symbiont_target_ref -query $consensus -outfmt "6 std qlen slen" -qcov_hsp_perc 20 -perc_identity 80 -out ${params.name}_consensus_blast_AT_qcov20_ide80.t
 	"""
 }
 
@@ -187,7 +173,7 @@ process contig_selection {
 	file $name_consensus_blast_AT from blastn_ch
 
 	output:
-	file "${params.name}_assembly.fasta" into contig_sel_ch
+	file "${params.name}_genimic.fasta" into contig_sel_ch
 
 	"""
 	python $contig_sel_py -c $consensus -t ${$name_consensus_blast_AT} -p ${params.name} -o ./
@@ -197,7 +183,7 @@ process contig_selection {
 process pilon {
 	input:
 	file consensus from medaka_cons_pilon
-	file $name_assembly from contig_sel_ch
+	file $name_genomic from contig_sel_ch
 	file r1 from r1_ch
 	file r2 from r2_ch
 
@@ -207,10 +193,10 @@ process pilon {
 	"""
 	#!/bin/bash
 
-	bwa index $consensus
-	bwa mem -M -t 20 -a $consensus $r1 $r2 | samtools sort -@ 4 -T tmp -m 5G --reference $consensus -O BAM -o ${params.name}_sorted_round1.bam
+	bwa index ${$name_genomic}
+	bwa mem -M -t 20 -a ${$name_genomic} $r1 $r2 | samtools sort -@ 4 -T tmp -m 5G --reference ${$name_genomic} -O BAM -o ${params.name}_sorted_round1.bam
 	samtools index ${params.name}_sorted_round1.bam
-	java -Xmx400G -jar /opt/miniconda3/share/pilon-1.23-0/pilon-1.23.jar --genome $consensus --frags ${params.name}_sorted_round1.bam --output ${params.name}_pilon_round1 --outdir . --changes --vcf
+	java -Xmx400G -jar /opt/miniconda3/share/pilon-1.23-0/pilon-1.23.jar --genome ${$name_genomic} --frags ${params.name}_sorted_round1.bam --output ${params.name}_pilon_round1 --outdir . --changes --vcf
 
 	for round in 2 3 4 5 ; do
 	    prev=\$( expr \$round - 1)
@@ -220,6 +206,7 @@ process pilon {
 	    java -Xmx400G -jar /opt/miniconda3/share/pilon-1.23-0/pilon-1.23.jar --genome ${params.name}_pilon_round\${prev}.fasta --frags ${params.name}_sorted_round\${round}.bam --output ${params.name}_pilon_round\${round} --outdir . --changes --vcf
 		done
 	"""
+}
 // 	"""
 // 	#!/bin/bash
 //
