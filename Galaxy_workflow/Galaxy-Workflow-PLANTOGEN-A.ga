@@ -1,0 +1,743 @@
+{
+    "a_galaxy_workflow": "true",
+    "annotation": "",
+    "format-version": "0.1",
+    "name": "PLANTOGEN-A",
+    "steps": {
+        "0": {
+            "annotation": "",
+            "content_id": null,
+            "errors": null,
+            "id": 0,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "",
+                    "name": "Host reference genome"
+                }
+            ],
+            "label": "Host reference genome",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 239.60000610351562,
+                "height": 82.20001220703125,
+                "left": 255,
+                "right": 455,
+                "top": 157.39999389648438,
+                "width": 200,
+                "x": 255,
+                "y": 157.39999389648438
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false, \"format\": [\"fasta\"], \"tag\": \"\"}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "09da1438-65e8-4cad-8803-b28065a55693",
+            "workflow_outputs": [
+                {
+                    "label": null,
+                    "output_name": "output",
+                    "uuid": "f0346290-8f88-4566-b2d1-646ef4dcfd81"
+                }
+            ]
+        },
+        "1": {
+            "annotation": "",
+            "content_id": null,
+            "errors": null,
+            "id": 1,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "",
+                    "name": "Basecalled ONT reads (fastq/fastq.gz)"
+                }
+            ],
+            "label": "Basecalled ONT reads (fastq/fastq.gz)",
+            "name": "Input dataset collection",
+            "outputs": [],
+            "position": {
+                "bottom": 364.6000061035156,
+                "height": 82.20001220703125,
+                "left": 258,
+                "right": 458,
+                "top": 282.3999938964844,
+                "width": 200,
+                "x": 258,
+                "y": 282.3999938964844
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false, \"tag\": \"\", \"collection_type\": \"list\"}",
+            "tool_version": null,
+            "type": "data_collection_input",
+            "uuid": "f9eeb6b2-c0c6-4242-92a4-97695da55ddc",
+            "workflow_outputs": [
+                {
+                    "label": null,
+                    "output_name": "output",
+                    "uuid": "f4b3515e-f33b-4614-a5fa-fbe149170da4"
+                }
+            ]
+        },
+        "2": {
+            "annotation": "",
+            "content_id": null,
+            "errors": null,
+            "id": 2,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "",
+                    "name": "Illumina reads r1"
+                }
+            ],
+            "label": "Illumina reads r1",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 691.2000274658203,
+                "height": 61.80000305175781,
+                "left": 1032,
+                "right": 1232,
+                "top": 629.4000244140625,
+                "width": 200,
+                "x": 1032,
+                "y": 629.4000244140625
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false, \"tag\": \"\"}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "34120b8f-836b-4ef8-9a97-009c207d37ae",
+            "workflow_outputs": [
+                {
+                    "label": null,
+                    "output_name": "output",
+                    "uuid": "54b2c071-43f3-451c-ac6f-db8e3945a6b2"
+                }
+            ]
+        },
+        "3": {
+            "annotation": "",
+            "content_id": null,
+            "errors": null,
+            "id": 3,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "",
+                    "name": "Illumina reads r2"
+                }
+            ],
+            "label": "Illumina reads r2",
+            "name": "Input dataset",
+            "outputs": [],
+            "position": {
+                "bottom": 766.2000274658203,
+                "height": 61.80000305175781,
+                "left": 1033,
+                "right": 1233,
+                "top": 704.4000244140625,
+                "width": 200,
+                "x": 1033,
+                "y": 704.4000244140625
+            },
+            "tool_id": null,
+            "tool_state": "{\"optional\": false, \"tag\": \"\"}",
+            "tool_version": null,
+            "type": "data_input",
+            "uuid": "0b1b03d6-65fd-4bd1-b52e-4c13b4f9cba8",
+            "workflow_outputs": [
+                {
+                    "label": null,
+                    "output_name": "output",
+                    "uuid": "b26cb22f-272f-4835-904a-d3d0da12f4c3"
+                }
+            ]
+        },
+        "4": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/minimap2/minimap2/2.24+galaxy0",
+            "errors": null,
+            "id": 4,
+            "input_connections": {
+                "fastq_input|fastq_input1": {
+                    "id": 1,
+                    "output_name": "output"
+                },
+                "reference_source|ref_file": {
+                    "id": 0,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Map with minimap2",
+                    "name": "fastq_input"
+                },
+                {
+                    "description": "runtime parameter for tool Map with minimap2",
+                    "name": "reference_source"
+                }
+            ],
+            "label": "Minimap2",
+            "name": "Map with minimap2",
+            "outputs": [
+                {
+                    "name": "alignment_output",
+                    "type": "bam"
+                }
+            ],
+            "position": {
+                "bottom": 417.6000061035156,
+                "height": 205.20001220703125,
+                "left": 493,
+                "right": 693,
+                "top": 212.39999389648438,
+                "width": 200,
+                "x": 493,
+                "y": 212.39999389648438
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/minimap2/minimap2/2.24+galaxy0",
+            "tool_shed_repository": {
+                "changeset_revision": "11a0d50a54e6",
+                "name": "minimap2",
+                "owner": "iuc",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"__job_resource\": {\"__job_resource__select\": \"no\", \"__current_case__\": 0}, \"alignment_options\": {\"splicing\": {\"splice_mode\": \"preset\", \"__current_case__\": 0}, \"A\": null, \"B\": null, \"O\": null, \"O2\": null, \"E\": null, \"E2\": null, \"z\": null, \"z2\": null, \"s\": null, \"no_end_flt\": \"true\"}, \"fastq_input\": {\"fastq_input_selector\": \"single\", \"__current_case__\": 0, \"fastq_input1\": {\"__class__\": \"RuntimeValue\"}, \"analysis_type_selector\": \"map-ont\"}, \"indexing_options\": {\"H\": \"false\", \"k\": null, \"w\": null, \"I\": null}, \"io_options\": {\"output_format\": \"BAM\", \"Q\": \"false\", \"L\": \"false\", \"K\": null, \"cs\": null, \"c\": \"false\", \"eqx\": \"false\", \"Y\": \"false\"}, \"mapping_options\": {\"N\": null, \"F\": null, \"f\": null, \"kmer_ocurrence_interval\": {\"interval\": \"\", \"__current_case__\": 1}, \"min_occ_floor\": null, \"q_occ_frac\": \"0.01\", \"g\": null, \"r\": null, \"n\": null, \"m\": null, \"max_chain_skip\": null, \"max_chain_iter\": null, \"X\": \"false\", \"p\": null, \"mask_len\": null}, \"reference_source\": {\"reference_source_selector\": \"history\", \"__current_case__\": 1, \"ref_file\": {\"__class__\": \"RuntimeValue\"}}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": null,
+            "type": "tool",
+            "uuid": "003c03f2-e661-4f46-a873-fe0ec5ddfdb3",
+            "workflow_outputs": [
+                {
+                    "label": "Map with minimap2 on input dataset(s) (mapped reads in BAM format)",
+                    "output_name": "alignment_output",
+                    "uuid": "c6acb5b4-4994-4cb4-a0e0-7bf80107a1e1"
+                }
+            ]
+        },
+        "5": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/bwa/bwa_mem/0.7.17.2",
+            "errors": null,
+            "id": 5,
+            "input_connections": {
+                "fastq_input|fastq_input1": {
+                    "id": 2,
+                    "output_name": "output"
+                },
+                "fastq_input|fastq_input2": {
+                    "id": 3,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Map with BWA-MEM",
+                    "name": "fastq_input"
+                },
+                {
+                    "description": "runtime parameter for tool Map with BWA-MEM",
+                    "name": "fastq_input"
+                }
+            ],
+            "label": null,
+            "name": "Map with BWA-MEM",
+            "outputs": [
+                {
+                    "name": "bam_output",
+                    "type": "bam"
+                }
+            ],
+            "position": {
+                "bottom": 780.0000305175781,
+                "height": 225.60000610351562,
+                "left": 1269,
+                "right": 1469,
+                "top": 554.4000244140625,
+                "width": 200,
+                "x": 1269,
+                "y": 554.4000244140625
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/bwa/bwa_mem/0.7.17.2",
+            "tool_shed_repository": {
+                "changeset_revision": "64f11cf59c6e",
+                "name": "bwa",
+                "owner": "devteam",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"__job_resource\": {\"__job_resource__select\": \"no\", \"__current_case__\": 0}, \"analysis_type\": {\"analysis_type_selector\": \"illumina\", \"__current_case__\": 0}, \"fastq_input\": {\"fastq_input_selector\": \"paired\", \"__current_case__\": 0, \"fastq_input1\": {\"__class__\": \"RuntimeValue\"}, \"fastq_input2\": {\"__class__\": \"RuntimeValue\"}, \"iset_stats\": \"\"}, \"output_sort\": \"coordinate\", \"reference_source\": {\"reference_source_selector\": \"cached\", \"__current_case__\": 0, \"ref_file\": \"apiMel4\"}, \"rg\": {\"rg_selector\": \"do_not_set\", \"__current_case__\": 3}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": null,
+            "type": "tool",
+            "uuid": "6f12bd8c-98b5-4f7f-acb8-7720318e6c78",
+            "workflow_outputs": [
+                {
+                    "label": "Map with BWA-MEM on input dataset(s) (mapped reads in BAM format)",
+                    "output_name": "bam_output",
+                    "uuid": "010aa22f-828c-49f4-af95-08393e9770b6"
+                }
+            ]
+        },
+        "6": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/samtools_view/samtools_view/1.13+galaxy1",
+            "errors": null,
+            "id": 6,
+            "input_connections": {
+                "addref_cond|ref": {
+                    "id": 0,
+                    "output_name": "output"
+                },
+                "input": {
+                    "id": 4,
+                    "output_name": "alignment_output"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Samtools view",
+                    "name": "addref_cond"
+                },
+                {
+                    "description": "runtime parameter for tool Samtools view",
+                    "name": "input"
+                }
+            ],
+            "label": "Filter out host reads ",
+            "name": "Samtools view",
+            "outputs": [
+                {
+                    "name": "outputsam",
+                    "type": "input"
+                }
+            ],
+            "position": {
+                "bottom": 648.6000061035156,
+                "height": 205.20001220703125,
+                "left": 495,
+                "right": 695,
+                "top": 443.3999938964844,
+                "width": 200,
+                "x": 495,
+                "y": 443.3999938964844
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/samtools_view/samtools_view/1.13+galaxy1",
+            "tool_shed_repository": {
+                "changeset_revision": "c370440f901e",
+                "name": "samtools_view",
+                "owner": "iuc",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"addref_cond\": {\"addref_select\": \"history\", \"__current_case__\": 1, \"ref\": {\"__class__\": \"RuntimeValue\"}}, \"input\": {\"__class__\": \"RuntimeValue\"}, \"mode\": {\"outtype\": \"all_reads\", \"__current_case__\": 0, \"output_options\": {\"reads_report_type\": \"retained\", \"__current_case__\": 0, \"adv_output\": {\"readtags\": [], \"collapsecigar\": \"false\"}, \"output_format\": {\"oformat\": \"bam\", \"__current_case__\": 2}}}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": null,
+            "type": "tool",
+            "uuid": "8b8054e2-0589-4d15-99b6-07d75c0d02e4",
+            "workflow_outputs": [
+                {
+                    "label": "Samtools view on input dataset(s): filtered alignments",
+                    "output_name": "outputsam",
+                    "uuid": "8d9fd5d5-fd54-46c9-a208-f9fd282525d4"
+                }
+            ]
+        },
+        "7": {
+            "annotation": "Obtain reads having mapping quality &lt; 21 ",
+            "content_id": "Filter1",
+            "errors": null,
+            "id": 7,
+            "input_connections": {
+                "input": {
+                    "id": 6,
+                    "output_name": "outputsam"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Filter",
+                    "name": "input"
+                }
+            ],
+            "label": "Pyhton script ",
+            "name": "Filter",
+            "outputs": [
+                {
+                    "name": "out_file1",
+                    "type": "input"
+                }
+            ],
+            "position": {
+                "bottom": 810.0000305175781,
+                "height": 113.60000610351562,
+                "left": 494,
+                "right": 694,
+                "top": 696.4000244140625,
+                "width": 200,
+                "x": 494,
+                "y": 696.4000244140625
+            },
+            "post_job_actions": {},
+            "tool_id": "Filter1",
+            "tool_state": "{\"cond\": \"MAPQ < 21\", \"header_lines\": \"0\", \"input\": {\"__class__\": \"RuntimeValue\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": null,
+            "type": "tool",
+            "uuid": "8fbe2267-4c11-47c1-b3b6-37cbcfad66e6",
+            "workflow_outputs": [
+                {
+                    "label": "host_filtered_reads.fastq",
+                    "output_name": "out_file1",
+                    "uuid": "af3de7c0-af3f-4630-b241-5dc709cbc949"
+                }
+            ]
+        },
+        "8": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/bgruening/flye/flye/2.9+galaxy0",
+            "errors": null,
+            "id": 8,
+            "input_connections": {
+                "inputs": {
+                    "id": 7,
+                    "output_name": "out_file1"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Flye",
+                    "name": "inputs"
+                }
+            ],
+            "label": null,
+            "name": "Flye",
+            "outputs": [
+                {
+                    "name": "consensus",
+                    "type": "fasta"
+                },
+                {
+                    "name": "assembly_graph",
+                    "type": "graph_dot"
+                },
+                {
+                    "name": "assembly_gfa",
+                    "type": "txt"
+                },
+                {
+                    "name": "assembly_info",
+                    "type": "tabular"
+                }
+            ],
+            "position": {
+                "bottom": 409.8000183105469,
+                "height": 286.4000244140625,
+                "left": 804,
+                "right": 1004,
+                "top": 123.39999389648438,
+                "width": 200,
+                "x": 804,
+                "y": 123.39999389648438
+            },
+            "post_job_actions": {
+                "HideDatasetActionassembly_graph": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "assembly_graph"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/bgruening/flye/flye/2.9+galaxy0",
+            "tool_shed_repository": {
+                "changeset_revision": "276f5d8712d5",
+                "name": "flye",
+                "owner": "bgruening",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"__job_resource\": {\"__job_resource__select\": \"no\", \"__current_case__\": 0}, \"asm\": {\"asm_select\": \"false\", \"__current_case__\": 1}, \"generate_log\": \"false\", \"inputs\": {\"__class__\": \"RuntimeValue\"}, \"iterations\": \"1\", \"keep_haplotypes\": \"false\", \"meta\": \"false\", \"min_overlap\": null, \"mode_conditional\": {\"mode\": \"--nano-raw\", \"__current_case__\": 0}, \"scaffold\": \"false\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": null,
+            "type": "tool",
+            "uuid": "656df60d-93d6-43f2-8fa7-5fe28961faf1",
+            "workflow_outputs": [
+                {
+                    "label": "Flye on input dataset(s): consensus",
+                    "output_name": "consensus",
+                    "uuid": "fcbe1acc-6c91-4ad3-b6e5-dc567c1f506d"
+                },
+                {
+                    "label": "Flye on input dataset(s): assembly info",
+                    "output_name": "assembly_info",
+                    "uuid": "2959358a-aec4-413b-8945-078f9e51ab7b"
+                },
+                {
+                    "label": null,
+                    "output_name": "assembly_gfa",
+                    "uuid": "bbe0f395-6895-498b-b024-447d32e4f9ee"
+                }
+            ]
+        },
+        "9": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/medaka_consensus_pipeline/medaka_consensus_pipeline/1.4.4+galaxy0",
+            "errors": null,
+            "id": 9,
+            "input_connections": {
+                "d": {
+                    "id": 8,
+                    "output_name": "consensus"
+                },
+                "i": {
+                    "id": 1,
+                    "output_name": "output"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool medaka consensus pipeline",
+                    "name": "d"
+                },
+                {
+                    "description": "runtime parameter for tool medaka consensus pipeline",
+                    "name": "i"
+                }
+            ],
+            "label": null,
+            "name": "medaka consensus pipeline",
+            "outputs": [
+                {
+                    "name": "out_consensus",
+                    "type": "fasta"
+                },
+                {
+                    "name": "out_probs",
+                    "type": "h5"
+                },
+                {
+                    "name": "out_calls",
+                    "type": "bam"
+                }
+            ],
+            "position": {
+                "bottom": 777,
+                "height": 347.6000061035156,
+                "left": 805,
+                "right": 1005,
+                "top": 429.3999938964844,
+                "width": 200,
+                "x": 805,
+                "y": 429.3999938964844
+            },
+            "post_job_actions": {
+                "HideDatasetActionout_probs": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "out_probs"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/medaka_consensus_pipeline/medaka_consensus_pipeline/1.4.4+galaxy0",
+            "tool_shed_repository": {
+                "changeset_revision": "72b5e9dda577",
+                "name": "medaka_consensus_pipeline",
+                "owner": "iuc",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"__job_resource\": {\"__job_resource__select\": \"no\", \"__current_case__\": 0}, \"b\": \"100\", \"d\": {\"__class__\": \"RuntimeValue\"}, \"g\": \"false\", \"i\": {\"__class__\": \"RuntimeValue\"}, \"m\": \"r941_min_high_g360\", \"out\": [\"consensus\", \"probs\", \"calls\"], \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": null,
+            "type": "tool",
+            "uuid": "f4931c43-fdf0-4e4a-aea8-e4a8c0cee279",
+            "workflow_outputs": [
+                {
+                    "label": "medaka consensus pipeline on input dataset(s): Calls to draft",
+                    "output_name": "out_calls",
+                    "uuid": "439002b8-1ced-4fdb-a46c-3774e949dc01"
+                },
+                {
+                    "label": "medaka consensus pipeline on input dataset(s): Consensus",
+                    "output_name": "out_consensus",
+                    "uuid": "085be9f2-325c-4e43-a746-c568b814cea7"
+                }
+            ]
+        },
+        "10": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/devteam/ncbi_blast_plus/ncbi_blastn_wrapper/2.10.1+galaxy0",
+            "errors": null,
+            "id": 10,
+            "input_connections": {
+                "query": {
+                    "id": 9,
+                    "output_name": "out_consensus"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool NCBI BLAST+ blastn",
+                    "name": "query"
+                }
+            ],
+            "label": null,
+            "name": "NCBI BLAST+ blastn",
+            "outputs": [
+                {
+                    "name": "output1",
+                    "type": "tabular"
+                }
+            ],
+            "position": {
+                "bottom": 554.8000030517578,
+                "height": 154.40000915527344,
+                "left": 1066,
+                "right": 1266,
+                "top": 400.3999938964844,
+                "width": 200,
+                "x": 1066,
+                "y": 400.3999938964844
+            },
+            "post_job_actions": {},
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/ncbi_blast_plus/ncbi_blastn_wrapper/2.10.1+galaxy0",
+            "tool_shed_repository": {
+                "changeset_revision": "5edc472ec434",
+                "name": "ncbi_blast_plus",
+                "owner": "devteam",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"__job_resource\": {\"__job_resource__select\": \"no\", \"__current_case__\": 0}, \"adv_opts\": {\"adv_opts_selector\": \"basic\", \"__current_case__\": 0}, \"blast_type\": \"megablast\", \"db_opts\": {\"db_opts_selector\": \"db\", \"__current_case__\": 0, \"database\": null, \"histdb\": \"\", \"subject\": \"\"}, \"evalue_cutoff\": \"0.001\", \"output\": {\"out_format\": \"ext\", \"__current_case__\": 1}, \"query\": {\"__class__\": \"RuntimeValue\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": null,
+            "type": "tool",
+            "uuid": "9edab68d-45e5-409e-93a9-ffac47b68ca2",
+            "workflow_outputs": [
+                {
+                    "label": null,
+                    "output_name": "output1",
+                    "uuid": "b62d4323-fb6b-43ae-ba78-319a6a54b909"
+                }
+            ]
+        },
+        "11": {
+            "annotation": "Select asssembled contigs on the basis of %identity with symbiont target genome, alignment length and contig length ",
+            "content_id": "Filter1",
+            "errors": null,
+            "id": 11,
+            "input_connections": {
+                "input": {
+                    "id": 10,
+                    "output_name": "output1"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Filter",
+                    "name": "input"
+                }
+            ],
+            "label": "Python script ",
+            "name": "Filter",
+            "outputs": [
+                {
+                    "name": "out_file1",
+                    "type": "input"
+                }
+            ],
+            "position": {
+                "bottom": 309,
+                "height": 113.60000610351562,
+                "left": 1171,
+                "right": 1371,
+                "top": 195.39999389648438,
+                "width": 200,
+                "x": 1171,
+                "y": 195.39999389648438
+            },
+            "post_job_actions": {},
+            "tool_id": "Filter1",
+            "tool_state": "{\"cond\": \"%ide >= 90%, qalign>=20%, size>= 5% of target genome\", \"header_lines\": \"0\", \"input\": {\"__class__\": \"RuntimeValue\"}, \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": null,
+            "type": "tool",
+            "uuid": "1f6e2ab7-90b5-47fa-b45f-59df7f45e1fd",
+            "workflow_outputs": [
+                {
+                    "label": "symbiont_genomic.fasta",
+                    "output_name": "out_file1",
+                    "uuid": "bb2e48f2-b041-408d-8c6c-4cda24862def"
+                }
+            ]
+        },
+        "12": {
+            "annotation": "",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/iuc/pilon/pilon/1.20.1",
+            "errors": null,
+            "id": 12,
+            "input_connections": {
+                "auto_selection|bam": {
+                    "id": 5,
+                    "output_name": "bam_output"
+                },
+                "reference_genome|history_item": {
+                    "id": 11,
+                    "output_name": "out_file1"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool pilon",
+                    "name": "auto_selection"
+                },
+                {
+                    "description": "runtime parameter for tool pilon",
+                    "name": "reference_genome"
+                }
+            ],
+            "label": null,
+            "name": "pilon",
+            "outputs": [
+                {
+                    "name": "output_vcf",
+                    "type": "vcf"
+                },
+                {
+                    "name": "output_fasta",
+                    "type": "fasta"
+                }
+            ],
+            "position": {
+                "bottom": 510.1999969482422,
+                "height": 194.8000030517578,
+                "left": 1492,
+                "right": 1692,
+                "top": 315.3999938964844,
+                "width": 200,
+                "x": 1492,
+                "y": 315.3999938964844
+            },
+            "post_job_actions": {
+                "HideDatasetActionoutput_vcf": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "output_vcf"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/iuc/pilon/pilon/1.20.1",
+            "tool_shed_repository": {
+                "changeset_revision": "11e5408fd238",
+                "name": "pilon",
+                "owner": "iuc",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"__job_resource\": {\"__job_resource__select\": \"no\", \"__current_case__\": 0}, \"auto_selection\": {\"auto_enabled\": \"true\", \"__current_case__\": 0, \"bam\": {\"__class__\": \"RuntimeValue\"}}, \"changes\": \"false\", \"options\": {\"selection_mode\": \"default\", \"__current_case__\": 0}, \"reference_genome\": {\"reference_genome_source\": \"history\", \"__current_case__\": 0, \"history_item\": {\"__class__\": \"RuntimeValue\"}}, \"variant\": \"true\", \"__page__\": null, \"__rerun_remap_job_id__\": null}",
+            "tool_version": null,
+            "type": "tool",
+            "uuid": "4a52de64-2164-4f36-9008-97dfbf48cc96",
+            "workflow_outputs": [
+                {
+                    "label": "FASTA from pilon on input dataset(s)",
+                    "output_name": "output_fasta",
+                    "uuid": "812bad0a-507f-4b13-8df3-1954c7957bbb"
+                }
+            ]
+        }
+    },
+    "tags": [],
+    "uuid": "f51b17de-59dc-40dc-9941-29707a00a2ce",
+    "version": 4
+}
