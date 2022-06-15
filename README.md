@@ -29,3 +29,11 @@ Otherwise, simply modify the `nextflow.config` file with the corrected path in t
  `nextflow run pipeline.nf -c nextflow.config -bg` 
  
  > `-bg` parameter of Nextflow is important to execute the pipeline in background 
+
+# USAGE - Snakemake 
+
+Also Snakemake has to be installed or completely integrated into the Cluster. To use the pipeline with Snakemake run:
+
+`snakemake --configfile config.yml --cores n` 
+
+Snakemake expect that the Snakefile is in the directory where the snakemake environment is active. The config.yml contains all the paths that has to be modified/specified for the pipeline to works. 
