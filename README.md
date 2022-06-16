@@ -37,3 +37,12 @@ Also Snakemake has to be installed or completely integrated into the Cluster. To
 `snakemake --configfile config.yml --cores n` 
 
 Snakemake expect that the Snakefile is in the directory where the snakemake environment is active. The config.yml contains all the paths that has to be modified/specified for the pipeline to works. 
+
+# USAGE - CWL 
+The entire workflow is stored in the plantogen-a.cwl file but each step is interpreted as a different tool in the pipeline and has its own definition `.cwl` file. For the pipeline to work you must have all the software installed locally or a docker image of them and you have to replace the path to the image in the right section of the `tool.cwl` file
+
+> hints:
+> 
+  >> class: DockerRequirement
+>
+  >> dockerPull: 'docker.io/some_name/tool_name:version'
