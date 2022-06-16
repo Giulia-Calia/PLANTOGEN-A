@@ -4,7 +4,7 @@ PLANTOGEN-A is an automated genome assembly pipeline designed to assemble symbio
 
 Almost every step of PLANTOGEN-A is associated with a logical step in the genome assembly workflow, from basecalled reads as input files, to corrected contigs, as output ones. Conceptually the workflow is composed as follows:
 - reads mapping (Minimap2 v2.17)
-- host filtering (fasta_filter.py, mapping quality to filter = 21) 
+- host filtering (host_reads_filter.py, mapping quality to filter = 21) 
 - reads assembly (Flye v2.8) 
 - contig consensus production (Medaka v1.2.0)
 - contig selection (BLAST v2.5.0 + blastn_contig_selection.py) 
