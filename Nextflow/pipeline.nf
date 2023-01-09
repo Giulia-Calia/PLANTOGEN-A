@@ -6,20 +6,80 @@ host_ref_ch = Channel.fromPath(params.host_ref)
 host_ref_ch.into { host_ref_minimap2_ch; host_ref_quality_bam_filter_ch }
 basecalled = file(params.basecalled)
 basecalled_ch = Channel.fromPath(params.basecalled)
-basecalled_ch.into { basecalled_minimap2_ch; basecalled_host_filt_ch; basecalled }
+basecalled_ch.into { basecalled_qcheck_ch; basecalled_stats_ch; basecalled_minimap2_ch; basecalled_host_filt_ch; basecalled }
 symbiont_target_ref = file(params.symbiont_target_ref)
 symbiont_target_ref_ch = Channel.fromPath(params.symbiont_target_ref)
 r1 = file(params.r1)
 r1_ch = Channel.fromPath(params.r1)
+r1_ch.into { ill1_qcheck_ch; ill1_stats_ch; pilon_corr1_ch }
 r2 = file(params.r2)
 r2_ch = Channel.fromPath(params.r2)
+r2_ch.into { ill2_qcheck_ch; ill2_stats_ch; pilon_corr2_ch }
 //
 // SCRIPTS
+stats_py = file(params.stats_py)
+stats_py_ch = Channel.fromPath(stats_py)
+stats_py_ch.into { raw_basecalled_stats_py_ch; illumina_stats_py_ch; host_filt_stats_py_ch }
 host_filt_py = file(params.host_filt_py)
 filt_py_ch = Channel.fromPath(params.host_filt_py)
 contig_sel_py = file(params.contig_sel_py)
 c_sel_py_ch = Channel.fromPath(params.contig_sel_py)
+rename_sel_py = file(params.rename_sel_py)
+r_sel_py_ch = Channel.fromPath(params.rename_sel_py)
+assembly_stats_py = file(params.fasta_stats_py)
+assembly_stats_py_ch	= Channel.fromPath(params.fasta_stats_py)
 //
+
+process basecalled_qcheck {
+	input:
+	file basecalled from basecalled_qcheck_ch
+
+	output:
+	file "*_fastqc*" into basecalled_fastqc_ch
+	"""
+	fastqc --outdir . --dir . -t 6 $basecalled
+	"""
+}
+
+process illumina_qcheck {
+	input:
+	file r1 from ill1_qcheck_ch
+	file r2 from ill2_qcheck_ch
+
+	output:
+	file "*_fastqc*" into ill_fastqc_ch
+
+	"""
+	fastqc --outdir . --dir . -t 6 $r1 $r2
+	"""
+}
+
+process basecalled_stats {
+	input:
+	file basecalled from basecalled_stats_ch
+	file stats_py from raw_basecalled_stats_py_ch
+
+	output:
+	file "${params.name}_basecalled_stats.txt" into basec_stats_ch
+	"""
+	python $stats_py -i $basecalled > ${params.name}_basecalled_stats.txt
+	"""
+}
+
+process illumina_stats {
+	input:
+	file r1 from ill1_stats_ch
+	file r2 from ill2_stats_ch
+	file stats_py from illumina_stats_py_ch
+	output:
+	file "${params.name}_ill_1_stats.txt" into ill1_computed_stats_ch
+	file "${params.name}_ill_2_stats.txt" into ill2_computed_stats_ch
+
+	"""
+	python $stats_py -i $r1 > ${params.name}_ill_1_stats.txt
+	python $stats_py -i $r2 > ${params.name}_ill_2_stats.txt
+	"""
+}
 
 process minimap2 {
 	input:
@@ -98,9 +158,23 @@ process host_filter_out {
   python $filt_py $basecalled ${params.name}_host_filtered.fastq.gz -r ${$name_minimap2_qfilt_21_uniq}
   """
 }
+// check statistics on filtering
 
 // create instances of the same channel to not create downstream calls problems
-host_filt_ch.into { host_filt_flye; host_filt_medaka; host_filt_pomoxis }
+host_filt_ch.into { host_filt_stats_ch; host_filt_flye; host_filt_medaka; host_filt_pomoxis }
+
+process host_filtered_stats {
+	input:
+	file $name_host_filtered from host_filt_stats_ch
+	file $stats_py from host_filt_stats_py_ch
+
+	output:
+	file "${params.name}_host_filtered_stats.txt" into hostfilt_stats_ch
+
+	"""
+	python $stats_py -i ${$name_host_filtered} > ${params.name}_host_filtered_stats.txt
+	"""
+}
 
 process flye_assembly {
 	input:
@@ -166,37 +240,39 @@ process blastn_check_filt {
 	"""
 }
 
-process contig_selection {
+process blast_contig_selection {
 	input:
 	file contig_sel_py from c_sel_py_ch
 	file consensus from medaka_cons_contig_sel
 	file $name_consensus_blast_AT from blastn_ch
 
 	output:
-	file "${params.name}_genimic.fasta" into contig_sel_ch
+	file "${params.name}_flye_medaka_genomic.fasta" into contig_sel_ch
 
 	"""
-	python $contig_sel_py -c $consensus -t ${$name_consensus_blast_AT} -p ${params.name} -o ./
+	python $contig_sel_py -c $consensus -t ${$name_consensus_blast_AT} -p ${params.name} -o .
 	"""
 }
 
+contig_sel_ch.into { for_pilon_exec_ch; for_pilon_c_rename_ch }
 process pilon {
 	input:
 	file consensus from medaka_cons_pilon
-	file $name_genomic from contig_sel_ch
-	file r1 from r1_ch
-	file r2 from r2_ch
+	file $name_flye_medaka_genomic from for_pilon_exec_ch
+	file r1 from pilon_corr1_ch
+	file r2 from pilon_corr2_ch
 
 	output:
 	file "${params.name}*.*" into pilon_ch
+	file "${params.name}_pilon_round5.fasta" into pilon_for_rename_ch
 
 	"""
 	#!/bin/bash
 
-	bwa index ${$name_genomic}
-	bwa mem -M -t 20 -a ${$name_genomic} $r1 $r2 | samtools sort -@ 4 -T tmp -m 5G --reference ${$name_genomic} -O BAM -o ${params.name}_sorted_round1.bam
+	bwa index ${$name_flye_medaka_genomic}
+	bwa mem -M -t 20 -a ${$name_flye_medaka_genomic} $r1 $r2 | samtools sort -@ 4 -T tmp -m 5G --reference ${$name_flye_medaka_genomic} -O BAM -o ${params.name}_sorted_round1.bam
 	samtools index ${params.name}_sorted_round1.bam
-	java -Xmx400G -jar /opt/miniconda3/share/pilon-1.23-0/pilon-1.23.jar --genome ${$name_genomic} --frags ${params.name}_sorted_round1.bam --output ${params.name}_pilon_round1 --outdir . --changes --vcf
+	java -Xmx400G -jar /opt/miniconda3/share/pilon-1.23-0/pilon-1.23.jar --genome ${$name_flye_medaka_genomic} --frags ${params.name}_sorted_round1.bam --output ${params.name}_pilon_round1 --outdir . --changes --vcf
 
 	for round in 2 3 4 5 ; do
 	    prev=\$( expr \$round - 1)
@@ -207,122 +283,29 @@ process pilon {
 		done
 	"""
 }
-// 	"""
-// 	#!/bin/bash
-//
-// 	bwa index ${$name_assembly}
-// 	bwa mem -M -t 20 -a ${$name_assembly} $r1 $r2 | samtools sort -@ 4 -T tmp -m 5G --reference ${$name_assembly} -O BAM -o ${params.name}_sorted_round1.bam
-// 	samtools index ${params.name}_sorted_round1.bam
-// 	java -Xmx400G -jar /opt/miniconda3/share/pilon-1.23-0/pilon-1.23.jar --genome ${$name_assembly} --frags ${params.name}_sorted_round1.bam --output ${params.name}_pilon_round1 --outdir . --changes --vcf
-//
-// 	for round in 2 3 4 5 ; do
-// 			prev=\$( expr \$round - 1)
-// 			bwa index ${params.name}_pilon_round\${prev}.fasta
-// 			bwa mem -M -t 20 -a ${params.name}_pilon_round\${prev}.fasta $r1 $r2 | samtools sort -@ 4 -T tmp -m 5G --reference ${params.name}_pilon_round\${prev}.fasta -O BAM -o ${params.name}_sorted_round\${round}.bam
-// 			samtools index ${params.name}_sorted_round\${round}.bam
-// 			java -Xmx400G -jar /opt/miniconda3/share/pilon-1.23-0/pilon-1.23.jar --genome ${params.name}_pilon_round\${prev}.fasta --frags ${params.name}_sorted_round\${round}.bam --output ${params.name}_pilon_round\${round} --outdir . --changes --vcf
-// 		done
-// 	"""
-// }
-// process bwa_round1 {
-// 	input:
-// 	file consensus from medaka_cons_bwa
-// 	file r1 from r1_ch
-// 	file r2 from r2_ch
-//
-// 	output:
-// 	file "${params.name}_bwa_round1.sam" into bwa_round1_ch
-//
-// 	"""
-// 	bwa index $consensus
-// 	bwa mem -M -t 20 -a $consensus $r1 $r2 > ${params.name}_bwa_round1.sam
-// 	"""
-//
-// }
-//
-// bwa_round1_ch.into { bwa_samtoolsr1_ch; bwa_rounds_ch }
-//
-// process samtools_round1 {
-// 	input:
-// 	file consensus from medaka_cons_samtools
-// 	file $name_bwa_round1 from bwa_samtoolsr1_ch
-//
-//
-// 	output:
-// 	file "${params.name}_sorted_round1.bam" into samtools_round1_ch
-// 	file "${params.name}_sorted_round1.bam.bai" into samtools_index_round1_ch
-//
-// 	"""
-// 	samtools sort ${$name_bwa_round1} -@ 4 -T tmp -m 5G --reference $consensus -O BAM -o ${params.name}_sorted_round1.bam
-// 	samtools index ${params.name}_sorted_round1.bam
-// 	"""
-// }
-//
-// samtools_round1_ch.into { samtools_pilonr1_ch; samtools_rounds_ch }
-// samtools_index_round1_ch.into { samtools_idxr1_ch; samtools_idx_rounds_ch }
-//
-// process pilon_round1 {
-// 	input:
-// 	file consensus from medaka_cons_pilon
-// 	file $name_sorted_round1 from samtools_pilonr1_ch
-// 	file $name_sorted_round1 from samtools_idxr1_ch
-//
-// 	output:
-// 	file "${params.name}_pilon_round1.*" into pilon_round1_ch
-//
-// 	"""
-// 	java -Xmx400G -jar /usr/local/share/pilon-1.23-3/pilon-1.23.jar --genome $consensus --frags ${params.name}_sorted_round1.bam --output ${params.name}_pilon_round1 --outdir . --changes --vcf
-// 	"""
-// }
 
+process rename_pilon_contigs {
+	input:
+	file $name_pilon_round5 from pilon_for_rename_ch
+	file $name_flye_medaka_genomic from for_pilon_c_rename_ch
+	file rename_sel_py from r_sel_py_ch
 
-// QUALITY CHECK
-// process pomoxis_qual {
-// 	input:
-// 	file $name_host_filtered from pom_quality
-// 	file consensus from medaka_cons_pomoxis
-//
-// 	output:
-// 	file "${params.name}_assm.bam" into pom_assess_assembly_ch
-// 	file "${params.name}_assm.bam.bai" into pom_assess_assembly_index_ch
-// 	file "${params.name}_assm_stats.txt" into pomo_assm_stats_ch
-// 	file "${params.name}_assm_summ.txt" into pomo_assm_summ_ch
-//
-//
-// 	// -r uses as <reference> the consensus sequence generated by medaka
-// 	// -i uses as <fastq> the basecalled reads filtered out of host genome
-// 	// -C  catalogue errors
-// 	// -t threads to be used for the process !ATTENTION! has to be the same as cpus in config file
-//   """
-// 	assess_assembly -r $consensus -i ${$name_host_filtered} -t 15 -p '${params.name}_assm'
-//   """
-// 	//assess_assembly -C -r $consensus -i ${$name_host_filtered} -t 15 -p '${params.name}_assm'
-//
-// }
-//
-// process pom_mini_align_md {
-// 	input:
-// 	file $name_host_filtered from pom_align_md
-// 	file consensus from medaka_cons_md
-//
-// 	output:
-// 	file "${params.name}_assm_MD_tag.bam" into pom_mini_align_ch
-// 	file "${params.name}_assm_MD_tag.bam.bai" into pom_mini_align_index_ch
-//
-// 	"""
-// 	mini_align -r $consensus -i ${$name_host_filtered} -m -p ${params.name}_assm_MD_tag -t 15
-// 	"""
-// }
-//
-// process pom_homopoly {
-//   input:
-// 	file $name_assm_MD_tag from pom_mini_align_index_ch
-// 	file $name_assm_MD_tag from pom_mini_align_ch
-//
-//   output:
-// 	file "homopolymers/hp_*" into homopoly_ch
-// 	// count homopolymers
-// 	"""
-// 	assess_homopolymers count ${$name_assm_MD_tag}
-// 	"""
-// }
+	output:
+	file "${params.name}_genomic.fasta" into renamed_pilon_ch
+	"""
+	python $rename_sel_py -fmf ${$name_flye_medaka_genomic} -pf ${$name_pilon_round5} -op ./${params.name}
+	"""
+
+}
+
+process assembly_stats {
+	input:
+	file $name_genomic from renamed_pilon_ch
+	file assembly_stats_py from assembly_stats_py_ch
+
+	output:
+	file "${params.name}_assembly_stats.txt" into asby_stats_ch
+	"""
+	python $assembly_stats_py -i ${$name_genomic} > ${params.name}_assembly_stats.txt
+	"""
+}
